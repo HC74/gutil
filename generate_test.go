@@ -1,7 +1,9 @@
 package gutil
 
 import (
+	"fmt"
 	"testing"
+	"time"
 )
 
 func TestA(t *testing.T) {
@@ -15,4 +17,8 @@ func TestA(t *testing.T) {
 		}
 		ss = append(ss, id)
 	}
+}
+
+func TestB(t *testing.T) {
+	fmt.Println(time.Now().Location().String())
 }

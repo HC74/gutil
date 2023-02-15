@@ -1,4 +1,4 @@
-module gutil
+module github.com/HC74/gutil
 
 go 1.18
 
