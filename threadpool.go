@@ -5,106 +5,46 @@ import (
 	"sync"
 )
 
-type Job interface {
-	Do()
+// 任务结构体
+type task struct {
+	id int // 任务ID
 }
 
-type Worker struct {
-	workerPool chan chan Job
-	jobChannel chan Job
-	quit       chan bool
+// 线程池结构体
+type threadPool struct {
+	capacity int            // 线程池容量
+	tasks    chan *task     // 任务通道
+	wg       sync.WaitGroup // 等待组
 }
 
-func NewWorker(workerPool chan chan Job) Worker {
-	return Worker{
-		workerPool: workerPool,
-		jobChannel: make(chan Job),
-		quit:       make(chan bool),
+// 线程函数，用于并发执行任务
+func (p *threadPool) worker(id int) {
+	defer p.wg.Done()
+	for t := range p.tasks {
+		fmt.Printf("worker %d processing task %d\n", id, t.id)
 	}
 }
 
-func (w Worker) Start() {
-	go func() {
-		for {
-			w.workerPool <- w.jobChannel
-
-			select {
-			case job := <-w.jobChannel:
-				job.Do()
-			case <-w.quit:
-				return
-			}
-		}
-	}()
-}
-
-func (w Worker) Stop() {
-	go func() {
-		w.quit <- true
-	}()
-}
-
-type Pool struct {
-	workers     []Worker
-	jobQueue    chan Job
-	workerQueue chan chan Job
-	wg          sync.WaitGroup
-}
-
-func NewPool(numWorkers, jobQueueLen int) *Pool {
-	jobQueue := make(chan Job, jobQueueLen)
-	workerQueue := make(chan chan Job, numWorkers)
-
-	pool := &Pool{
-		workers:     make([]Worker, numWorkers),
-		jobQueue:    jobQueue,
-		workerQueue: workerQueue,
+// 初始化线程池
+func newThreadPool(capacity int) *threadPool {
+	p := &threadPool{
+		capacity: capacity,
+		tasks:    make(chan *task),
 	}
-
-	for i := 0; i < numWorkers; i++ {
-		pool.workers[i] = NewWorker(workerQueue)
+	p.wg.Add(capacity)
+	for i := 0; i < capacity; i++ {
+		go p.worker(i)
 	}
-
-	return pool
+	return p
 }
 
-func (p *Pool) Start() {
-	for _, worker := range p.workers {
-		worker.Start()
-	}
-
-	go p.dispatch()
+// 提交任务
+func (p *threadPool) submit(t *task) {
+	p.tasks <- t
 }
 
-func (p *Pool) Stop() {
-	for _, worker := range p.workers {
-		worker.Stop()
-	}
-
+// 等待所有任务执行完毕
+func (p *threadPool) wait() {
+	close(p.tasks)
 	p.wg.Wait()
-}
-
-func (p *Pool) dispatch() {
-	for {
-		job := <-p.jobQueue
-
-		p.wg.Add(1)
-		go func(job Job) {
-			worker := <-p.workerQueue
-			worker <- job
-			p.wg.Done()
-		}(job)
-	}
-}
-
-func (p *Pool) Submit(job Job) {
-	p.jobQueue <- job
-}
-
-type ExampleJob struct {
-	ID int
-}
-
-func (j ExampleJob) Do() {
-	fmt.Printf("ExampleJob %d is running\n", j.ID)
 }
