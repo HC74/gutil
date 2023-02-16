@@ -119,16 +119,16 @@ func (c *HttpClient) PostBody(url string, headers M, body string, data interface
 // == 泛型
 
 // GetBody 泛型Get
-func GetBody[T any](url string, headers M) (*T, error) {
+func GetBody[T any](url string, headers M) (T, error) {
 	c := &http.Client{}
+	var data T
 	req, err := httpRequest(c, "GET", url, headers, nil)
 	if err != nil {
-		return nil, err
+		return data, err
 	}
-	var data *T
 	err = json.Unmarshal(req, &data)
 	if err != nil {
-		return nil, err
+		return data, err
 	}
 	return data, nil
 }
