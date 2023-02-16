@@ -21,8 +21,8 @@ func NewHttpClient() *HttpClient {
 	}
 }
 
-// httpGet 发送get请求
-func (c *HttpClient) httpRequest(requestType, url string, headers M, dataBody io.Reader) ([]byte, error) {
+// httpRequest 通用请求方法
+func httpRequest(c *http.Client, requestType, url string, headers M, dataBody io.Reader) ([]byte, error) {
 	req, err := http.NewRequest(requestType, url, dataBody)
 	if err != nil {
 		return nil, err
@@ -34,7 +34,7 @@ func (c *HttpClient) httpRequest(requestType, url string, headers M, dataBody io
 	}
 
 	// 发送请求
-	resp, err := c.client.Do(req)
+	resp, err := c.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -45,6 +45,11 @@ func (c *HttpClient) httpRequest(requestType, url string, headers M, dataBody io
 		return nil, err
 	}
 	return body, err
+}
+
+// httpRequest 发送get请求
+func (c *HttpClient) httpRequest(requestType, url string, headers M, dataBody io.Reader) ([]byte, error) {
+	return httpRequest(c.client, requestType, url, headers, dataBody)
 }
 
 // GetStringN 发送get请求且不包含请求头
@@ -109,4 +114,36 @@ func (c *HttpClient) PostBody(url string, headers M, body string, data interface
 		return err
 	}
 	return nil
+}
+
+// == 泛型
+
+// GetBody 泛型Get
+func GetBody[T any](url string, headers M) (*T, error) {
+	c := &http.Client{}
+	req, err := httpRequest(c, "GET", url, headers, nil)
+	if err != nil {
+		return nil, err
+	}
+	var data *T
+	err = json.Unmarshal(req, &data)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+// GetPost 泛型post
+func GetPost[T any](url string, headers M, body string) (*T, error) {
+	c := &http.Client{}
+	req, err := httpRequest(c, "POST", url, headers, strings.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	var data *T
+	err = json.Unmarshal(req, &data)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }
