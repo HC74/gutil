@@ -1,1 +1,3 @@
 package gutil
+
+const ()
