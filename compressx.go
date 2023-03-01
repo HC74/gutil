@@ -24,7 +24,7 @@ func Zip(src, dest string) (err error) {
 	// Create zip.Write through fw.
 	zw := zip.NewWriter(fw)
 	defer func() {
-		// Check if it is successfully closed.
+		// Check if it is successfully fileClosed.
 		if err := zw.Close(); err != nil {
 			log.Fatalln(err)
 		}
@@ -95,7 +95,7 @@ func ZipRecursive(src, dest string) (err error) {
 	// Create zip.Write through fw.
 	zw := zip.NewWriter(fw)
 	defer func() {
-		// Check if it is successfully closed.
+		// Check if it is successfully fileClosed.
 		if err := zw.Close(); err != nil {
 			log.Fatalln(err)
 		}
@@ -184,37 +184,37 @@ func UnZip(dst, src string) (err error) {
 		// Get the Reader.
 		fr, err := file.Open()
 		if err != nil {
-			//Also close when abnormal
-			close(fr, nil)
+			//Also fileClose when abnormal
+			fileClose(fr, nil)
 			return err
 		}
 
 		// Create the Write corresponding to the file to be written.
 		fw, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR|os.O_TRUNC, file.Mode())
 		if err != nil {
-			//Also close when abnormal
-			close(fr, fw)
+			//Also fileClose when abnormal
+			fileClose(fr, fw)
 			return err
 		}
 
 		n, err := io.Copy(fw, fr)
 		if err != nil {
-			//Also close when abnormal
-			close(fr, fw)
+			//Also fileClose when abnormal
+			fileClose(fr, fw)
 			return err
 		}
 
 		// Output the decompressed result.
 		fmt.Printf("UnZip success %s A total of %d characters have been written\n", path, n)
 
-		//Finally remember to close
-		close(fr, fw)
+		//Finally remember to fileClose
+		fileClose(fr, fw)
 	}
 	return nil
 }
 
-// close close关闭文件流
-func close(fr io.ReadCloser, fw *os.File) {
+// fileClose fileClose关闭文件流
+func fileClose(fr io.ReadCloser, fw *os.File) {
 	if fr != nil {
 		fr.Close()
 	}
@@ -294,7 +294,7 @@ func TarRecursive(src, dest string) (err error) {
 	// Create zip.Write through fw.
 	gw := gzip.NewWriter(fw)
 	defer func() {
-		// Check if it is successfully closed.
+		// Check if it is successfully fileClosed.
 		if err := gw.Close(); err != nil {
 			log.Fatalln(err)
 		}
