@@ -119,6 +119,24 @@ func BuildNotPage[T any](s *SqlBuilder, v *T) error {
 	return err
 }
 
+// Order 正序
+func (s *SqlBuilder) Order(v string) *SqlBuilder {
+	s.BaseSql = fmt.Sprintf(" %v order by %v asc", s.BaseSql, v)
+	return s
+}
+
+// OrderDesc 倒序
+func (s *SqlBuilder) OrderDesc(v string) *SqlBuilder {
+	s.BaseSql = fmt.Sprintf(" %v order by %v desc", s.BaseSql, v)
+	return s
+}
+
+// OrderBy 自由排序
+func (s *SqlBuilder) OrderBy(v string) *SqlBuilder {
+	s.BaseSql = fmt.Sprintf("%v order by %v", s.BaseSql, v)
+	return s
+}
+
 // Build 构建 r1 总页数 r2 总数据量 r3 恐慌
 func Build[T any](s *SqlBuilder, v *T) (int64, int64, error) {
 	sql := fmt.Sprintf("select %v %v", s.Temp, s.BaseSql)
