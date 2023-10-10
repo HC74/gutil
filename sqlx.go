@@ -52,6 +52,15 @@ func (o *OrmBuilder) appendConditions(m map[string]interface{}) {
 	}
 }
 
+// Find 查询同Gorm的Find
+func (o *OrmBuilder) Find(v interface{}) error {
+	err := o.db.Find(&v).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // SqlSelect 创建sql合并
 func SqlSelect(db *gorm.DB, s ...string) *SqlBuilder {
 	tempStr := ""
