@@ -54,7 +54,7 @@ func (o *OrmBuilder) appendConditions(m map[string]interface{}) {
 
 // Find 查询同Gorm的Find
 func (o *OrmBuilder) Find(v interface{}) error {
-	err := o.db.Find(&v).Error
+	err := o.db.Find(v).Error
 	if err != nil {
 		return err
 	}
