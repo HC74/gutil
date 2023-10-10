@@ -6,14 +6,50 @@ import (
 	"strings"
 )
 
-type SqlBuilder struct {
-	BaseSql   string
-	Temp      string
-	Condition map[string]interface{}
-	Total     int64
-	pageSize  int
-	pageNum   int64
-	DB        *gorm.DB
+type (
+	SqlBuilder struct {
+		BaseSql   string
+		Temp      string
+		Condition map[string]interface{}
+		Total     int64
+		pageSize  int
+		pageNum   int64
+		DB        *gorm.DB
+	}
+	OrmBuilder struct {
+		db        *gorm.DB
+		TableName string
+	}
+)
+
+func Orm(db *gorm.DB, tableName string) *OrmBuilder {
+	return &OrmBuilder{
+		db:        db,
+		TableName: tableName,
+	}
+}
+
+// Fusion 将条件和DB融合为Orm操作实例
+func (o *OrmBuilder) Fusion(v interface{}) *OrmBuilder {
+	condition := ToSqlCondition(o.TableName, v)
+	o.appendConditions(condition)
+	return o
+}
+
+// DB 获取DB实例
+func (o *OrmBuilder) DB() *gorm.DB {
+	return o.db
+}
+
+// appendConditions 累计
+func (o *OrmBuilder) appendConditions(m map[string]interface{}) {
+	for key, val := range m {
+		if val == nil {
+			o.db = o.db.Where(key)
+		} else {
+			o.db = o.db.Where(key, val)
+		}
+	}
 }
 
 // SqlSelect 创建sql合并
