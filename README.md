@@ -4,5 +4,5 @@ go 语言统一工具类
 
 When used with Go modules, use the following import path:
 ```go
-go get github.com/HC74/gutil@v0.7.3
+go get github.com/HC74/gutil@v0.7.4
 ```
